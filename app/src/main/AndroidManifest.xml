@@ -12,14 +12,51 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SkmIntegracion"
         tools:targetApi="31">
+
         <activity
-            android:name=".MainActivity"
+            android:name=".BehaviorActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="icg.actions.electronicpayment.izipay.GET_BEHAVIOR"/>
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".InitializeActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="icg.actions.electronicpayment.izipay.INITIALIZE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
+        </activity>
+        <activity
+            android:name=".GetVersionActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="icg.actions.electronicpayment.izipay.GET_VERSION"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".TransactionActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="icg.actions.electronicpayment.izipay.TRANSACTION"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".GetCustomParamsActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="icg.actions.electronicpayment.izipay.GET_CUSTOM_PARAMS"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
         </activity>
     </application>
 
