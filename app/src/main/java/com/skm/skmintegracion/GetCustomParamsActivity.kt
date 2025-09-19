@@ -9,7 +9,7 @@ import java.io.ByteArrayOutputStream
 class GetCustomParamsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        println("ley: GetCustomParamsActivity...onCreate")
         val resultIntent = Intent(intent.action)
         try {
             // Obtenim els bytes del logo

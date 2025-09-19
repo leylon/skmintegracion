@@ -8,6 +8,7 @@ import android.os.Bundle
 class BehaviorActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("ley: BehaviorActivity...onCreate")
         setBehaviorResult()
     }
 

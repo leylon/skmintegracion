@@ -8,7 +8,7 @@ import android.os.Bundle
 class GetVersionActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        println("ley: GetVersionActivity...onCreate")
         onGetVersion()
     }
 

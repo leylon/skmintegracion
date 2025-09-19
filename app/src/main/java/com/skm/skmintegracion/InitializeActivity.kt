@@ -10,7 +10,7 @@ import java.util.Properties
 class InitializeActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        println("ley: InitializeActivity...onCreate")
         val properties: Properties =
             APIUtils.parseInitializeParameters(intent.getStringExtra("Parameters"))
         onInitialize(properties)
