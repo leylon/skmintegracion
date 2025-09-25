@@ -85,17 +85,16 @@ object APIUtils {
         return """<ModifyDocumentResult>
     <PaymentMeans>
         <PaymentMean>
-            <PaymentMeanField Key="LineNumber">1</PaymentMeanField>
-            <PaymentMeanField Key="TransactionId">a78f482e-0511-4113-9bc8-a2b4292da651</PaymentMeanField>
-
             <CustomPaymentMeanFields>
-                <CustomPaymentMeanField Key="IdRef">0065</CustomPaymentMeanField>
-                <CustomPaymentMeanField Key="IdEntidad">1</CustomPaymentMeanField>
-                <CustomPaymentMeanField Key="NTarjeta">491257**0447</CustomPaymentMeanField>
-                <CustomPaymentMeanField Key="docTarjeta">TJ3324C521567</CustomPaymentMeanField>
-                <CustomPaymentMeanField Key="IdFormaPagoKey">3</CustomPaymentMeanField>
-                <CustomPaymentMeanField Key="IdTarjetaKey">MAST</CustomPaymentMeanField>
-                <CustomPaymentMeanField Key="Cuota">1</CustomPaymentMeanField>
+                <CustomDocPaymentMeanField Key="LineNumber">1</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="TransactionId">a78f482e-0511-4113-9bc8-a2b4292da651</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="IdRef">0065</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="IdEntidad">1</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="NTarjeta">421355**3740</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="docTarjeta">TJ3324C521567</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="IdFormaPagoKey">3</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="IdTarjetaKey">MAST</CustomDocPaymentMeanField>
+                <CustomDocPaymentMeanField Key="Cuota">1</CustomDocPaymentMeanField>
             </CustomPaymentMeanFields>
         </PaymentMean>
     </PaymentMeans>

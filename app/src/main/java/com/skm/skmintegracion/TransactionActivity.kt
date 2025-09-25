@@ -1,7 +1,11 @@
 package com.skm.skmintegracion
 
 
-import android.app.Activity
+import CustomDocPaymentMeanField
+import CustomPaymentMeanFields
+import ModifyDocumentResult
+import PaymentMean
+import PaymentMeans
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
@@ -11,10 +15,18 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.skm.skmintegracion.constants.Transaction
 import com.skm.skmintegracion.constants.TransactionResult
+import com.skm.skmintegracion.hiopos.data.FinalizeTransactionUseCase
+import com.skm.skmintegracion.hiopos.data.HioposDataResponse
+import com.skm.skmintegracion.hiopos.data.HioposSettingsManager
+import com.skm.skmintegracion.hiopos.data.mapper.toDocument
+import com.skm.skmintegracion.hiopos.data.mapper.toXml
 import com.skm.skmintegracion.utils.APIUtils
+import kotlinx.coroutines.launch
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.StringWriter
@@ -26,7 +38,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
-class TransactionActivity : Activity() {
+class TransactionActivity : AppCompatActivity() {
     // TextView per mostrar informació a la pantalla
     private val IZIPAY_PACKAGE_NAME = "pe.izipay.pmpDev" // o "pe.izipay.izi" para producción [cite: 406, 407]
     private val IZIPAY_COMPONENT_NAME = "pe.izipay.Mpos00External" // Componente principal [cite: 408]
@@ -37,7 +49,19 @@ class TransactionActivity : Activity() {
 
     private var textView: TextView? = null
     private var button2: Button? = null
-
+    /*private val settingsManager: HioposSettingsManager by lazy {
+        HioposSettingsManager(context = this)
+    }
+    private val finalizeTransactionUseCase  by lazy {
+        FinalizeTransactionUseCase()
+    }*/
+    // 2. Crea la Factory, pasándole el UseCase.
+    private val viewModelFactory: ProcessingViewModelFactory  by lazy {
+        val app = application as MyApplication
+        ProcessingViewModelFactory(app.finalizeTransactionUseCase,app.hioposSettingsManager)
+    }
+    private val viewModelProcess: ProcessingViewModel by viewModels {viewModelFactory}
+    private var hioposDataResponseData: HioposDataResponse? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -47,6 +71,27 @@ class TransactionActivity : Activity() {
         button2?.setOnClickListener { onExit(it) }
 
         handleIntent(intent)
+
+        lifecycleScope.launch {
+
+            viewModelProcess.finalResultHiopos.collect { hioposDataResponse ->
+                Log.d("HioposDataResponseActivity", hioposDataResponse.toString())
+                hioposDataResponseData = hioposDataResponse
+                viewModelProcess.hiosDataResponse.postValue(hioposDataResponseData)
+                viewModelProcess.saveSuccessfulTransactionData(hioposDataResponse)
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModelProcess.savedHioposData.collect { hioposData ->
+                // Muestra el SaleId recuperado del mismo DataStore
+                println("HioposDataResponseDataStore: $hioposData")
+                //viewModelProcess.hiosDataResponse.postValue(hioposData)
+                hioposDataResponseData = hioposData
+                //viewModelProcess.hiosDataResponse.postValue(hioposDataResponseData)
+            }
+        }
+
     }
 
     private fun handleIntent(intent: Intent) {
@@ -54,6 +99,10 @@ class TransactionActivity : Activity() {
         when (transactionType ?: "") {
             Transaction.SALE -> {
                 // Obtenim els paràmetres d'entrada
+                val document = getIntent().getStringExtra("DocumentData").toString().toDocument()
+                saleId = document.header?.headerFields?.get("SaleId").toString()
+                println("SALE ID > $saleId")
+
                 val tenderType = getIntent().getStringExtra("TenderType")
                 val currencyISO = getIntent().getStringExtra("CurrencyISO")
                 val amount: BigDecimal? =
@@ -145,7 +194,23 @@ class TransactionActivity : Activity() {
             }
 
             Transaction.BATCH_CLOSE -> {}
-            else -> {}
+            else -> {
+                val izipayExtras = intent.extras
+                if (izipayExtras != null && izipayExtras.getBoolean("isResponse")) {
+                    // La Activity no guarda nada, solo delega la tarea al ViewModel
+                    viewModelProcess.saveAndProcessIzipayResponse(izipayExtras)
+
+                    println("hiopos: $hioposDataResponseData")
+                } else {
+                    // Manejar el caso de que no haya respuesta
+                   // viewModelProcess.handleNoIzipayResponse()}
+                    println("No hay respuesta de IZIPAY: ${izipayExtras?.getString("message").toString()}")
+                }
+
+                //resultIntent.putExtra("ErrorMessage", "Method not supported")
+                //setResult(RESULT_CANCELED, resultIntent)
+                //finish()
+            }
         }
     }
 
@@ -166,6 +231,11 @@ class TransactionActivity : Activity() {
                 val transactionId = intent.getIntExtra("TransactionId", -1)
                 val transactionData = intent.getStringExtra("TransactionData")
                 val receiptPrinterColumns = intent.getIntExtra("ReceiptPrinterColumns", 42)
+                val hioposDataResponse = intent.getSerializableExtra("hioposDataResponse") as? HioposDataResponse
+                println("HioposDataResponseIntent: $hioposDataResponse")
+                //hioposDataResponseData = hioposDataResponse
+               // viewModelProcess.hiosDataResponse.postValue(hioposDataResponse)
+
                 onSaleTransactionReceived(
                     tenderType, currencyISO, amount, tipAmount, taxAmount, transactionId,
                     transactionData, receiptPrinterColumns
@@ -424,8 +494,23 @@ class TransactionActivity : Activity() {
     private fun onUnknownTransactionReceived() {
         val resultIntent = Intent(intent.action)
         resultIntent.putExtra("ErrorMessage", "Method not supported")
+        println("onUnknownTransactionReceived: Method not supported")
+        hioposDataResponseData = viewModelProcess.hiosDataResponse.value
+        var dataLocal = HioposDataResponse(
+             docTarjeta =  hioposDataResponseData?.docTarjeta.toString(),
+         IdFormaPagoKey = hioposDataResponseData?.IdFormaPagoKey.toString() ,
+         IdTarjetaKey =  hioposDataResponseData?.IdTarjetaKey.toString(),
+         IdRef =  hioposDataResponseData?.IdRef.toString(),
+         Ntarjeta = hioposDataResponseData?.Ntarjeta.toString() ,
+         Cuota =  hioposDataResponseData?.Cuota.toString(),
+         IdEntidad = hioposDataResponseData?.IdEntidad.toString() ,
+         SaleId = hioposDataResponseData?.SaleId.toString()
+        )
+        viewModelProcess.saveSuccessfulTransactionData(dataLocal)
+        resultIntent.putExtra("hioposDataResponse", hioposDataResponseData)
+        println("Result: ${resultIntent.extras}")
         setResult(RESULT_CANCELED, resultIntent)
-        finish()
+       onBackPressed()
     }
 
 
@@ -451,6 +536,7 @@ class TransactionActivity : Activity() {
         transactionData: String?, merchantReceipt: String?, customerReceipt: String?,
         errorMessage: String?
     ) {
+
         val resultIntent = Intent(intent.action)
 
         resultIntent.putExtra("TransactionResult", transactionResult)
@@ -486,10 +572,41 @@ class TransactionActivity : Activity() {
             "ErrorMessage",
             errorMessage
         )
-        resultIntent.putExtra("ModifyDocumentResult", APIUtils.documentModificado())
+
+        println("HiosDataResponseUltimo: ${viewModelProcess.hiosDataResponse.value}")
+        //hioposDataResponseData = viewModelProcess.hiosDataResponse.value
+
+        val customFields = listOf(
+            CustomDocPaymentMeanField(key = "SaleId", value = saleId),
+            CustomDocPaymentMeanField(key = "LineNumber", value = "1"),
+            CustomDocPaymentMeanField(key = "IdRef", value = hioposDataResponseData?.IdRef.toString()),
+            CustomDocPaymentMeanField(key = "IdEntidad", value = hioposDataResponseData?.IdEntidad.toString()),
+            CustomDocPaymentMeanField(key = "NTarjeta", value = hioposDataResponseData?.Ntarjeta.toString()),
+            CustomDocPaymentMeanField(key = "docTarjeta", value = hioposDataResponseData?.docTarjeta.toString()),
+            CustomDocPaymentMeanField(key = "IdFormaPagoKey", value = "3"),
+            CustomDocPaymentMeanField(key = "IdTarjetaKey", value = hioposDataResponseData?.IdTarjetaKey.toString()),
+            CustomDocPaymentMeanField(key = "Cuota", value = hioposDataResponseData?.Cuota.toString())
+        )
+        // Crear el objeto que contiene esos campos
+        val customPaymentMeanFields = CustomPaymentMeanFields(fields = customFields)
+
+        // Crear el objeto PaymentMean
+        val paymentMean = PaymentMean(customPaymentMeanFields = customPaymentMeanFields)
+
+        // Crear la lista de PaymentMeans
+        val paymentMeans = PaymentMeans(paymentMeanList = listOf(paymentMean))
+
+        // Crear el objeto raíz
+        val documentToGenerate = ModifyDocumentResult(paymentMeans = paymentMeans)
+
+        resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
         println("RESULT INTENT > " + resultIntent.extras.toString())
+
+        viewModelProcess.clearSavedData()
         setResult(RESULT_OK, resultIntent)
-        finish()
+        onBackPressed()
+
+
     }
 
     /**
@@ -876,7 +993,7 @@ class TransactionActivity : Activity() {
         enviarPeticionAIzipay(extras)
     }
 
-
+/*
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         // (como en onResume) use el intent más reciente.
@@ -898,4 +1015,6 @@ class TransactionActivity : Activity() {
             println("ley: No valid Izipay response received." )
         }
     }
+    */
+
 }
