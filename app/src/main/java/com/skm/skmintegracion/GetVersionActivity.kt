@@ -15,9 +15,9 @@ class GetVersionActivity : Activity() {
     /**
      * Event triggered when a 'GET_VERSION' intent it's filtered. Is the responsibility
      * of integrator to implement it and set the right result.
-     */
+     */    
     protected fun onGetVersion() {
-        setVersionResult(3)
+        setVersionResult(4)
     }
 
 
