@@ -18,8 +18,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnReporteDetallado: Button
     private val IZIPAY_PACKAGE_NAME = "pe.izipay.pmpDev" // o "pe.izipay.izi" para producción [cite: 406, 407]
     private val IZIPAY_COMPONENT_NAME = "pe.izipay.Mpos00External" // Componente principal [cite: 408]
-    val hioposSettingsManager by lazy { HioposSettingsManager(this) }
-    val finalizeTransactionUseCase by lazy { FinalizeTransactionUseCase() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

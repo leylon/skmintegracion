@@ -73,7 +73,8 @@ operator fun invoke(izipayExtras: Bundle): Result<TransactionOutput> {
             IdFormaPagoKey = "3", // Valor fijo o basado en alguna lógica
             IdRef = "0000",       // Valor por defecto o de tu sistema
             Cuota = izipayExtras.getString("numInstallments", "1"),
-            IdEntidad = "1"       // Valor por defecto o de tu sistema
+            IdEntidad = "1" ,      // Valor por defecto o de tu sistema
+            documentData = ""
         )
     }
 }

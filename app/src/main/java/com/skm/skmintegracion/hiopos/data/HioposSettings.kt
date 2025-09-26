@@ -25,6 +25,7 @@ class HioposSettingsManager(private val context: Context) {
         val CUOTA = stringPreferencesKey("cuota")
         val ID_ENTIDAD = stringPreferencesKey("id_entidad")
         val SALE_ID = stringPreferencesKey("sale_id")
+        val DOCUMENT_DATA = stringPreferencesKey("document_data")
     }
 
     // ... Aquí irán las funciones para guardar y leer
@@ -38,6 +39,12 @@ class HioposSettingsManager(private val context: Context) {
             settings[PreferencesKeys.CUOTA] = response.Cuota
             settings[PreferencesKeys.ID_ENTIDAD] = response.IdEntidad
             settings[PreferencesKeys.SALE_ID] = response.SaleId
+            settings[PreferencesKeys.DOCUMENT_DATA] = response.documentData
+        }
+    }
+    suspend fun saveDocumentData(documentData: String) {
+        context.dataStore.edit { settings ->
+            settings[PreferencesKeys.DOCUMENT_DATA] = documentData
         }
     }
     // Dentro de la clase HioposSettingsManager
@@ -56,7 +63,12 @@ class HioposSettingsManager(private val context: Context) {
                 Ntarjeta = preferences[PreferencesKeys.N_TARJETA] ?: "",
                 Cuota = preferences[PreferencesKeys.CUOTA] ?: "",
                 IdEntidad = preferences[PreferencesKeys.ID_ENTIDAD] ?: "",
-                SaleId = preferences[PreferencesKeys.SALE_ID] ?: ""
+                SaleId = preferences[PreferencesKeys.SALE_ID] ?: "",
+                documentData = preferences[PreferencesKeys.DOCUMENT_DATA] ?: ""
             )
+        }
+    val hioposDataDocument: Flow<String> =  context.dataStore.data
+        .map {  preference ->
+            preference[PreferencesKeys.DOCUMENT_DATA] ?: ""
         }
 }

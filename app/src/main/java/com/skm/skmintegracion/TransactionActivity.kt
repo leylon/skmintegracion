@@ -62,6 +62,7 @@ class TransactionActivity : AppCompatActivity() {
     }
     private val viewModelProcess: ProcessingViewModel by viewModels {viewModelFactory}
     private var hioposDataResponseData: HioposDataResponse? = null
+    private var hioposDocumentData: String? = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -91,6 +92,12 @@ class TransactionActivity : AppCompatActivity() {
                 //viewModelProcess.hiosDataResponse.postValue(hioposDataResponseData)
             }
         }
+        lifecycleScope.launch {
+            viewModelProcess.savedDocumentData.collect { transactionOutput ->
+                println("inalResultResponse: $transactionOutput")
+                hioposDocumentData = transactionOutput
+            }
+        }
 
     }
 
@@ -100,6 +107,7 @@ class TransactionActivity : AppCompatActivity() {
             Transaction.SALE -> {
                 // Obtenim els paràmetres d'entrada
                 val document = getIntent().getStringExtra("DocumentData").toString().toDocument()
+                viewModelProcess.saveDocumenData(getIntent().getStringExtra("DocumentData").toString())
                 saleId = document.header?.headerFields?.get("SaleId").toString()
                 println("SALE ID > $saleId")
 
@@ -154,8 +162,12 @@ class TransactionActivity : AppCompatActivity() {
                 val amount: BigDecimal =
                     APIUtils.parseAPIAmount(getIntent().getStringExtra("Amount").toString())
                 val transactionId = getIntent().getIntExtra("TransactionId", -1)
+                val document = getIntent().getStringExtra("DocumentData").toString().toDocument()
+                viewModelProcess.saveDocumenData(getIntent().getStringExtra("DocumentData").toString())
+                saleId = document.header?.headerFields?.get("SaleId").toString()
                 val transactionData = getIntent().getStringExtra("TransactionData")
                 val receiptPrinterColumns = getIntent().getIntExtra("ReceiptPrinterColumns", 42)
+                anularCompra(amount.toString(), "0001",saleId)
             }
 
             Transaction.ADJUST_TIPS -> {
@@ -197,6 +209,7 @@ class TransactionActivity : AppCompatActivity() {
             else -> {
                 val izipayExtras = intent.extras
                 if (izipayExtras != null && izipayExtras.getBoolean("isResponse")) {
+                    println("izipayDataResponseIntentExtras: $izipayExtras")
                     // La Activity no guarda nada, solo delega la tarea al ViewModel
                     viewModelProcess.saveAndProcessIzipayResponse(izipayExtras)
 
@@ -504,13 +517,16 @@ class TransactionActivity : AppCompatActivity() {
          Ntarjeta = hioposDataResponseData?.Ntarjeta.toString() ,
          Cuota =  hioposDataResponseData?.Cuota.toString(),
          IdEntidad = hioposDataResponseData?.IdEntidad.toString() ,
-         SaleId = hioposDataResponseData?.SaleId.toString()
+         SaleId = hioposDataResponseData?.SaleId.toString(),
+         documentData = hioposDataResponseData?.documentData.toString()
         )
         viewModelProcess.saveSuccessfulTransactionData(dataLocal)
+        viewModelProcess.saveDocumenData(hioposDocumentData.toString())
+        viewModelProcess.saveDocumenData(hioposDocumentData.toString())
         resultIntent.putExtra("hioposDataResponse", hioposDataResponseData)
         println("Result: ${resultIntent.extras}")
         setResult(RESULT_CANCELED, resultIntent)
-       onBackPressed()
+        finish()
     }
 
 
@@ -598,13 +614,20 @@ class TransactionActivity : AppCompatActivity() {
 
         // Crear el objeto raíz
         val documentToGenerate = ModifyDocumentResult(paymentMeans = paymentMeans)
+        val hioposDocumentDatos = hioposDocumentData.toString().toDocument()
+        hioposDocumentDatos.paymentMeans.apply {
+            PaymentMeans(paymentMeanList = listOf(paymentMean))
+        }
+        println("HioposDocumentDatos: $hioposDocumentDatos")
 
         resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
+        resultIntent.putExtra("DocumentData",hioposDocumentDatos.toXml())
         println("RESULT INTENT > " + resultIntent.extras.toString())
 
         viewModelProcess.clearSavedData()
+        viewModelProcess.clearSavedDocumentData()
         setResult(RESULT_OK, resultIntent)
-        onBackPressed()
+        finish()
 
 
     }
@@ -901,11 +924,12 @@ class TransactionActivity : AppCompatActivity() {
     }
 
     // --- 🔄 2. ANULAR COMPRA ---
-    private fun anularCompra(amount: String, referenceId: String) {
+    private fun anularCompra(amount: String, referenceId: String,saleId: String) {
         val extras = Bundle().apply {
             putString("trxCode", "04") // Código para Anulación [cite: 186]
             putString("amount", amount) // Monto original [cite: 186]
             putString("reference", referenceId) // Referencia de la venta original a anular [cite: 186]
+            putString("orderId", saleId)
         }
         enviarPeticionAIzipay(extras)
     }

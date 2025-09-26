@@ -42,7 +42,13 @@ class ProcessingViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = HioposDataResponse("", "", "", "", "", "", "", "") // Valor inicial vacío
+            initialValue = HioposDataResponse("", "", "", "", "", "", "", "","") // Valor inicial vacío
+        )
+    val savedDocumentData: StateFlow<String> = settingsManager.hioposDataDocument
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "" // Valor inicial vacío
         )
 
 
@@ -147,7 +153,8 @@ class ProcessingViewModel(
                 Ntarjeta = cardNumber.toString(),
                 Cuota = numInstallments.toString(),
                 IdEntidad = "1",
-                SaleId = orderId.toString()
+                SaleId = orderId.toString(),
+                documentData = ""
             )
             _hiosDataResponse.postValue(hioposDataResponse)
             println("HioposDataResponse: $hioposDataResponse")
@@ -174,11 +181,24 @@ class ProcessingViewModel(
             settingsManager.saveHioposData(response)
         }
     }
+    fun saveDocumenData(documentData: String) {
+        // 3. Usa el viewModelScope para llamar a la función suspend del Manager.
+        viewModelScope.launch {
+            settingsManager.saveDocumentData(documentData)
+        }
+    }
+
+    fun clearSavedDocumentData() {
+        // 3. Usa el viewModelScope para llamar a la función suspend del Manager.
+        viewModelScope.launch {
+            settingsManager.saveDocumentData("")
+        }
+    }
 
     fun clearSavedData() {
         // 3. Usa el viewModelScope para llamar a la función suspend del Manager.
         viewModelScope.launch {
-            settingsManager.saveHioposData(HioposDataResponse("", "", "", "", "", "", "", ""))
+            settingsManager.saveHioposData(HioposDataResponse("", "", "", "", "", "", "", "",""))
         }
     }
 }
