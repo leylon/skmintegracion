@@ -21,8 +21,8 @@ class InitializeActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         println("ley: InitializeActivity...onCreate")
-        setContentView(R.layout.activity_blank)
-
+        //setContentView(R.layout.activity_blank)
+        /*
         btnBack = findViewById(R.id.btnBack)
         btnReporteTotal = findViewById(R.id.btnReporteTotal)
         btnReporteDetallado = findViewById(R.id.btnReporteDetallado)
@@ -32,8 +32,8 @@ class InitializeActivity : Activity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
-        }
-        btnBack.setOnClickListener { finishInitializeOK() }
+        }*/
+        /*btnBack.setOnClickListener { finishInitializeOK() } */
         val properties: Properties =
             APIUtils.parseInitializeParameters(intent.getStringExtra("Parameters"))
         onInitialize(properties)
@@ -51,7 +51,7 @@ class InitializeActivity : Activity() {
             )
         }
 
-        //finishInitializeOK()
+        finishInitializeOK()
     }
 
     protected fun finishInitializeOK() {

@@ -107,6 +107,9 @@ class TransactionActivity : AppCompatActivity() {
             Transaction.SALE -> {
                 // Obtenim els paràmetres d'entrada
                 val document = getIntent().getStringExtra("DocumentData").toString().toDocument()
+
+                val datass =getIntent().getStringExtra("DocumentData").toString()
+                println("datas: $datass" )
                 viewModelProcess.saveDocumenData(getIntent().getStringExtra("DocumentData").toString())
                 saleId = document.header?.headerFields?.get("SaleId").toString()
                 println("SALE ID > $saleId")
@@ -147,6 +150,7 @@ class TransactionActivity : AppCompatActivity() {
                 ReceiptPrinterColumns: $receiptPrinterColumns
                 """.trimIndent()
                 realizarCompra(amount.toString(), tipAmount.toString())
+                //realizarCompraTest( amount.toString(), tipAmount.toString(),saleId,datass)
             }
 
             Transaction.NEGATIVE_SALE -> {
@@ -205,7 +209,9 @@ class TransactionActivity : AppCompatActivity() {
                 val receiptPrinterColumns = getIntent().getIntExtra("ReceiptPrinterColumns", 42)
             }
 
-            Transaction.BATCH_CLOSE -> {}
+            Transaction.BATCH_CLOSE -> {
+
+            }
             else -> {
                 val izipayExtras = intent.extras
                 if (izipayExtras != null && izipayExtras.getBoolean("isResponse")) {
@@ -522,7 +528,7 @@ class TransactionActivity : AppCompatActivity() {
         )
         viewModelProcess.saveSuccessfulTransactionData(dataLocal)
         viewModelProcess.saveDocumenData(hioposDocumentData.toString())
-        viewModelProcess.saveDocumenData(hioposDocumentData.toString())
+        //viewModelProcess.saveDocumenData(hioposDocumentData.toString())
         resultIntent.putExtra("hioposDataResponse", hioposDataResponseData)
         println("Result: ${resultIntent.extras}")
         setResult(RESULT_CANCELED, resultIntent)
@@ -921,6 +927,46 @@ class TransactionActivity : AppCompatActivity() {
         }
 
         enviarPeticionAIzipay(extras)
+    }
+    private fun realizarCompraTest(amount: String, tipAmount: String = "0", saleId: String, datass: String) {
+        val extras = Bundle().apply {
+            putString("trxCode", "01") // Código para Compra [cite: 100]
+            putString("responseCod", "00") // [cite: 105]
+            putString("approvalCode", amount) // [cite: 105]
+            putString("card", "421355**3740") // [cite: 105]
+            putString("orderId", saleId) // [cite: 105]
+            putString("merchantId", "1") // [cite: 105]
+            putString("terminalId", "TJ3324C521567") // [cite: 105]
+            putString("numInstallments", "1") // [cite: 105]
+            putString("brand", "MAST") // [cite: 105]
+
+
+            if (tipAmount.toDouble() > 0) {
+                putString("tipAmount", tipAmount) // [cite: 105]
+            }
+            // --- Otros parámetros opcionales comunes ---
+            //putBoolean("installments", false) // No solicitar cuotas [cite: 105]
+        }
+
+
+        viewModelProcess.saveAndProcessIzipayResponse(extras)
+        hioposDataResponseData = viewModelProcess.hiosDataResponse.value
+        var dataLocal = HioposDataResponse(
+            docTarjeta = "TJ3324C521567" ,
+            IdFormaPagoKey = "3" ,
+            IdTarjetaKey =  "MAST",
+            IdRef =  saleId,
+            Ntarjeta = "421355**3740" ,
+            Cuota =  "1",
+            IdEntidad = "1" ,
+            SaleId = saleId,
+            documentData = hioposDataResponseData?.documentData.toString()
+        )
+        viewModelProcess.saveSuccessfulTransactionData(dataLocal)
+        viewModelProcess.saveDocumenData(datass)
+        //viewModelProcess.saveDocumenData(hioposDocumentData.toString())
+
+
     }
 
     // --- 🔄 2. ANULAR COMPRA ---

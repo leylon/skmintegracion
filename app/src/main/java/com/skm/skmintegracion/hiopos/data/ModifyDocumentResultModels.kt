@@ -21,12 +21,12 @@ data class PaymentMeans(
 // Clase de Objeto: <PaymentMean>
 @Root(name = "PaymentMean", strict = false)
 data class PaymentMean(
-    @field:Element(name = "CustomPaymentMeanFields", required = false)
+    @field:Element(name = "CustomDocPaymentMeanFields", required = false)
     var customPaymentMeanFields: CustomPaymentMeanFields? = null
 )
 
 // Clase Contenedora de Campos: <CustomPaymentMeanFields>
-@Root(name = "CustomPaymentMeanFields", strict = false)
+@Root(name = "CustomDocPaymentMeanFields", strict = false)
 data class CustomPaymentMeanFields(
     @field:ElementList(name = "CustomDocPaymentMeanField", inline = true, required = false)
     var fields: List<CustomDocPaymentMeanField> = emptyList()

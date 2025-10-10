@@ -19,7 +19,7 @@ class BehaviorActivity : Activity() {
         resultIntent.putExtra("SupportsTransactionQuery", true)
         resultIntent.putExtra("SupportsNegativeSales", true)
         resultIntent.putExtra("SupportsPartialRefund", false)
-        resultIntent.putExtra("SupportsBatchClose", false)
+        resultIntent.putExtra("SupportsBatchClose", true)
         resultIntent.putExtra("SupportsTipAdjustment", false)
         resultIntent.putExtra("OnlyCreditForTipAdjustment", false)
         resultIntent.putExtra("SupportsCredit", false)
