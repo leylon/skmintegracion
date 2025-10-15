@@ -17,7 +17,7 @@ class GetVersionActivity : Activity() {
      * of integrator to implement it and set the right result.
      */    
     protected fun onGetVersion() {
-        setVersionResult(4)
+        setVersionResult(7)
     }
 
 

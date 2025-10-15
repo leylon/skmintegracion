@@ -1,9 +1,11 @@
 package com.skm.skmintegracion.hiopos.data.mapper
 
 
-import ModifyDocumentResult
+
+import com.skm.skmintegracion.hiopos.data.ModifyDocumentResult
+import com.skm.skmintegracion.hiopos.data.PaymentMean
 import com.skm.skmintegracion.hiopos.data.model.document.Document
-import com.skm.skmintegracion.hiopos.data.model.document.payment_means.PaymentMean
+
 import org.simpleframework.xml.core.Persister
 import java.io.StringWriter
 

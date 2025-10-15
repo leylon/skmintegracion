@@ -15,7 +15,7 @@ data class PaymentMean(
     ) var paymentMeanFields: Map<String, String?>? = null,
 
     @field:ElementMap(
-        name = "CustomDocPaymentMeanFields",
+        name = "CustomPaymentMeanFields",
         entry = "CustomPaymentMeanField",
         key = "Key",
         attribute = true,

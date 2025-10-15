@@ -1,15 +1,20 @@
 package com.skm.skmintegracion
 
-import CustomDocPaymentMeanField
+
 import android.os.Bundle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.skm.skmintegracion.hiopos.data.CustomDocPaymentMeanField
 import com.skm.skmintegracion.hiopos.data.FinalizeTransactionUseCase
 import com.skm.skmintegracion.hiopos.data.HioposDataResponse
 import com.skm.skmintegracion.hiopos.data.HioposSettingsManager
 import com.skm.skmintegracion.hiopos.data.TransactionOutput
+import com.skm.skmintegracion.hiopos.data.mapper.DocumentManager
+import com.skm.skmintegracion.hiopos.data.mapper.PaymentMeanManager
+import com.skm.skmintegracion.hiopos.data.model.document.Document
+import com.skm.skmintegracion.hiopos.data.model.document.payment_means.PaymentMean
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,6 +67,7 @@ class ProcessingViewModel(
         const val IZIPAY_BRAND_KEY = "izipayBrand"
         const val IZIPAY_MERCHANT_ID_KEY = "izipayMerchantId"
         const val IZIPAY_ORDER_ID_KEY = "izipayOrderId"
+        const val IZIPAY_TRANSACTION_ID_KEY = "izipayTransactionId"
         //const val IZYPAY_RESPONSE_STATUS = "izipayResponseStatus"
         const val IZIPAY_TERMINAL_ID_KEY = "izipayTerminalId"
         const val IZIPAY_NUM_INSTALLMENTS_KEY = "izipayNumInstallments"
@@ -88,6 +94,7 @@ class ProcessingViewModel(
         //val responseStatus = izipayExtras.getBoolean("isResponse")?: false
         val terminalId = izipayExtras.getString("terminalId")?: ""
         val numInstallments = izipayExtras.getString("numInstallments")?: "1"
+        val transactionId = izipayExtras.getString("transactionId")?: ""
 
         // --- ¡AQUÍ ESTÁ LA MAGIA! ---
         // Guardas cada dato en el SavedStateHandle usando una clave.
@@ -101,6 +108,7 @@ class ProcessingViewModel(
         //savedStateHandle[IZYPAY_RESPONSE_STATUS] = responseStatus
         savedStateHandle[IZIPAY_TERMINAL_ID_KEY] = terminalId
         savedStateHandle[IZIPAY_NUM_INSTALLMENTS_KEY] = numInstallments
+        savedStateHandle[IZIPAY_TRANSACTION_ID_KEY] = transactionId
 
         prepareOutputResponse(izipayExtras)
         prepareOutputForAppA()
@@ -122,14 +130,14 @@ class ProcessingViewModel(
             //val responseStatus = savedStateHandle.get<String>(IZYPAY_RESPONSE_STATUS)
             val terminalId = savedStateHandle.get<String>(IZIPAY_TERMINAL_ID_KEY)
             val numInstallments = savedStateHandle.get<String>(IZIPAY_NUM_INSTALLMENTS_KEY)
-
+            val transactionId = savedStateHandle.get<String>(IZIPAY_TRANSACTION_ID_KEY)
             // --- PASO 2.B: PROCESAR (Usando el Caso de Uso) ---
             // Llama a tu Caso de Uso con los datos recuperados para que
             // aplique la lógica de negocio y cree el objeto final para la App A.
             val customFields = listOf(
                 CustomDocPaymentMeanField(key = "SaleId", value = orderId.toString()),
                 CustomDocPaymentMeanField(key = "LineNumber", value = "1"),
-                CustomDocPaymentMeanField(key = "IdRef", value = orderId.toString()),
+                CustomDocPaymentMeanField(key = "IdRef", value = transactionId.toString().takeLast(4)) ,
                 CustomDocPaymentMeanField(key = "IdEntidad", value = "1"),
                 CustomDocPaymentMeanField(key = "NTarjeta", value = cardNumber.toString()),
                 CustomDocPaymentMeanField(key = "docTarjeta", value = terminalId.toString()),
@@ -149,7 +157,7 @@ class ProcessingViewModel(
                 docTarjeta = terminalId.toString(),
                 IdFormaPagoKey = "3",
                 IdTarjetaKey = brand.toString(),
-                IdRef = orderId.toString(),
+                IdRef =  transactionId.toString().takeLast(4),
                 Ntarjeta = cardNumber.toString(),
                 Cuota = numInstallments.toString(),
                 IdEntidad = "1",
@@ -200,5 +208,97 @@ class ProcessingViewModel(
         viewModelScope.launch {
             settingsManager.saveHioposData(HioposDataResponse("", "", "", "", "", "", "", "",""))
         }
+    }
+
+    fun updatePaymentMeanInfo(datoPaymentMean: String, hioposDataResponse :HioposDataResponse ): PaymentMean  {
+        var documentData = DocumentManager.fromXml(datoPaymentMean)
+
+
+
+        var paymentMean = PaymentMeanManager.fromXml(datoPaymentMean)!!
+
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "IdRef", hioposDataResponse.IdRef)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "NTarjeta", hioposDataResponse.Ntarjeta)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "docTarjeta", hioposDataResponse.docTarjeta)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "IdFormaPagoKey", hioposDataResponse.IdFormaPagoKey)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "IdTarjetaKey", hioposDataResponse.IdTarjetaKey)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "Cuota", hioposDataResponse.Cuota)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "IdEntidad", hioposDataResponse.IdEntidad)
+            paymentMean = PaymentMeanManager.addOrUpdatePaymentField(paymentMean, "SaleId", hioposDataResponse.SaleId)
+        return paymentMean
+    }
+
+    fun updateDocumentInfo(datoPaymentMean: String, hioposDataResponse :HioposDataResponse ): Document  {
+        var documentData = DocumentManager.fromXml(datoPaymentMean)
+
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "IdRef",
+            value = hioposDataResponse.IdRef
+        )
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "NTarjeta",
+            value = hioposDataResponse.Ntarjeta
+        )
+
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "docTarjeta",
+            value = hioposDataResponse.docTarjeta
+        )
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "IdFormaPagoKey",
+            value = hioposDataResponse.IdFormaPagoKey
+        )
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "IdTarjetaKey",
+            value = hioposDataResponse.IdTarjetaKey
+        )
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "Cuota",
+            value = hioposDataResponse.Cuota
+        )
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "IdEntidad",
+            value = hioposDataResponse.IdEntidad
+        )
+        documentData = DocumentManager.addOrUpdateCustomFieldInPaymentMean(
+            original = documentData!!,
+            findPaymentMeanPredicate = { pm ->
+                pm.paymentMeanFields?.get("PaymenMeanName") == "IZIPAY"
+            },
+            key = "SaleId",
+            value = hioposDataResponse.SaleId
+        )
+
+
+
+        return documentData
     }
 }

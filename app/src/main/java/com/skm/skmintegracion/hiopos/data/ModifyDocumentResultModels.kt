@@ -1,3 +1,5 @@
+package com.skm.skmintegracion.hiopos.data
+
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList

@@ -1,11 +1,7 @@
 package com.skm.skmintegracion
 
 
-import CustomDocPaymentMeanField
-import CustomPaymentMeanFields
-import ModifyDocumentResult
-import PaymentMean
-import PaymentMeans
+
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
@@ -20,9 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.skm.skmintegracion.constants.Transaction
 import com.skm.skmintegracion.constants.TransactionResult
+import com.skm.skmintegracion.hiopos.data.CustomDocPaymentMeanField
+import com.skm.skmintegracion.hiopos.data.CustomPaymentMeanFields
 import com.skm.skmintegracion.hiopos.data.FinalizeTransactionUseCase
 import com.skm.skmintegracion.hiopos.data.HioposDataResponse
 import com.skm.skmintegracion.hiopos.data.HioposSettingsManager
+import com.skm.skmintegracion.hiopos.data.ModifyDocumentResult
+import com.skm.skmintegracion.hiopos.data.PaymentMean
+import com.skm.skmintegracion.hiopos.data.PaymentMeans
 import com.skm.skmintegracion.hiopos.data.mapper.toDocument
 import com.skm.skmintegracion.hiopos.data.mapper.toXml
 import com.skm.skmintegracion.utils.APIUtils
@@ -210,7 +211,7 @@ class TransactionActivity : AppCompatActivity() {
             }
 
             Transaction.BATCH_CLOSE -> {
-
+                realizarCierreDeCaja()
             }
             else -> {
                 val izipayExtras = intent.extras
@@ -224,6 +225,10 @@ class TransactionActivity : AppCompatActivity() {
                     // Manejar el caso de que no haya respuesta
                    // viewModelProcess.handleNoIzipayResponse()}
                     println("No hay respuesta de IZIPAY: ${izipayExtras?.getString("message").toString()}")
+                    val resultIntent = Intent(intent.action)
+                    resultIntent.putExtra("ErrorMessage", "Method not supported")
+                    setResult(RESULT_CANCELED, resultIntent)
+                    finish()
                 }
 
                 //resultIntent.putExtra("ErrorMessage", "Method not supported")
@@ -620,13 +625,20 @@ class TransactionActivity : AppCompatActivity() {
 
         // Crear el objeto raíz
         val documentToGenerate = ModifyDocumentResult(paymentMeans = paymentMeans)
-        val hioposDocumentDatos = hioposDocumentData.toString().toDocument()
-        hioposDocumentDatos.paymentMeans.apply {
-            PaymentMeans(paymentMeanList = listOf(paymentMean))
-        }
+        println("hioposDocumentData antes de convertir: ${hioposDocumentData.toString()}")
+        var hioposDocumentDatos = hioposDocumentData.toString().toDocument()
+        //hioposDocumentDatos.modifyDocumentResult = ModifyDocumentResult(paymentMeans = paymentMeans)
+       // val paymentMeans = com.skm.skmintegracion.hiopos.data.model.document.payment_means.PaymentMean()
+        //hioposDocumentDatos.paymentMeans?.add(paymentMean)
+
+         hioposDocumentDatos = viewModelProcess.updateDocumentInfo(hioposDocumentData.toString(),hioposDataResponseData!!)
+        //val paymentMeanData = hioposDocumentDatos.paymentMeans?.firstOrNull() ?: PaymentMean()
+        //hioposDocumentDatos.paymentMeans = listOf(viewModelProcess.updatePaymentMeanInfo(paymentMeanData,hioposDataResponseData!!))
+
+
         println("HioposDocumentDatos: $hioposDocumentDatos")
 
-        resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
+        //resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
         resultIntent.putExtra("DocumentData",hioposDocumentDatos.toXml())
         println("RESULT INTENT > " + resultIntent.extras.toString())
 
@@ -919,11 +931,15 @@ class TransactionActivity : AppCompatActivity() {
         val extras = Bundle().apply {
             putString("trxCode", "01") // Código para Compra [cite: 100]
             putString("amount", amount) // [cite: 105]
+
             if (tipAmount.toDouble() > 0) {
                 putString("tipAmount", tipAmount) // [cite: 105]
             }
             // --- Otros parámetros opcionales comunes ---
-            putBoolean("installments", false) // No solicitar cuotas [cite: 105]
+            //putBoolean("installments", false) // No solicitar cuotas [cite: 105]
+            putBoolean("installments",true)
+            putBoolean("flagEmail",true)
+            putBoolean("flagPhone",true)
         }
 
         enviarPeticionAIzipay(extras)

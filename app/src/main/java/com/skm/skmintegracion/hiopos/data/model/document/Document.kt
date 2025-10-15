@@ -1,5 +1,6 @@
 package com.skm.skmintegracion.hiopos.data.model.document
 
+import com.skm.skmintegracion.hiopos.data.ModifyDocumentResult
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.ElementMap
@@ -56,4 +57,8 @@ data class Document(
         inline = true,
         required = false,
     ) var actions: Map<String, String?>? = null,
-)
+  /*  @field:Element(
+        name = "ModifyDocumentResult", required = false)
+    var modifyDocumentResult: ModifyDocumentResult? = null,
+*/
+    )
