@@ -64,6 +64,8 @@ class TransactionActivity : AppCompatActivity() {
     private val viewModelProcess: ProcessingViewModel by viewModels {viewModelFactory}
     private var hioposDataResponseData: HioposDataResponse? = null
     private var hioposDocumentData: String? = ""
+    private var customerEmail: String? = ""
+    private var customerPhone: String? = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -113,7 +115,11 @@ class TransactionActivity : AppCompatActivity() {
                 println("datas: $datass" )
                 viewModelProcess.saveDocumenData(getIntent().getStringExtra("DocumentData").toString())
                 saleId = document.header?.headerFields?.get("SaleId").toString()
+                customerEmail = document.header?.customer?.customerFields?.get("Email") ?: ""
+                customerPhone = document.header?.customer?.customerFields?.get("Phone") ?: ""
                 println("SALE ID > $saleId")
+                println("Customer Email > $customerEmail")
+                println("Customer Phone > $customerPhone")
 
                 val tenderType = getIntent().getStringExtra("TenderType")
                 val currencyISO = getIntent().getStringExtra("CurrencyISO")
@@ -211,6 +217,9 @@ class TransactionActivity : AppCompatActivity() {
             }
 
             Transaction.BATCH_CLOSE -> {
+
+                //viewModelProcess.saveDocumenData(getIntent().getStringExtra("DocumentData").toString())
+
                 realizarCierreDeCaja()
             }
             else -> {
@@ -905,9 +914,6 @@ class TransactionActivity : AppCompatActivity() {
             extras.putString("packageName", this.javaClass.getPackage()?.name)
             extras.putString("packageId", applicationContext.packageName)
             extras.putString("activityResponse", this.javaClass.simpleName)
-            extras.putString("orderId", saleId) // Tu ID de orden, será devuelto [cite: 105]
-            extras.putBoolean("currency", true) // true: Soles, false: Dólares [cite: 105]
-            extras.putBoolean("voucherEnable", true) // Mostrar voucher/reporte en Izipay [cite: 108]
 
             intent.putExtras(extras)
             //intentHiopos?.let { intent.putExtras(it) }
@@ -940,6 +946,16 @@ class TransactionActivity : AppCompatActivity() {
             putBoolean("installments",true)
             putBoolean("flagEmail",true)
             putBoolean("flagPhone",true)
+            putString("orderId", saleId) // Tu ID de orden, será devuelto [cite: 105]
+            putBoolean("currency", true) // true: Soles, false: Dólares [cite: 105]
+            putBoolean("voucherEnable", true) // Mostrar voucher/reporte en Izipay [cite: 108]
+
+            if (!customerEmail.isNullOrEmpty()){
+                putString("email",customerEmail)
+            }
+            if(!customerPhone.isNullOrEmpty()){
+                putString("phone", customerPhone?.takeLast(9))
+            }
         }
 
         enviarPeticionAIzipay(extras)
@@ -1066,7 +1082,9 @@ class TransactionActivity : AppCompatActivity() {
     // --- 📦 7. CIERRE DE CAJA ---
     private fun realizarCierreDeCaja() {
         val extras = Bundle().apply {
+            // 1000131
             putString("trxCode", "08") // Código para Cierre de Caja [cite: 340]
+            //putString("orderId", saleId)
         }
         enviarPeticionAIzipay(extras)
     }
