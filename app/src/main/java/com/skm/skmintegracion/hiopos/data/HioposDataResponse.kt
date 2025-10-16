@@ -12,5 +12,6 @@ data class HioposDataResponse(
     val Cuota: String,
     val IdEntidad: String,
     val SaleId: String,
-    val documentData: String
+    val documentData: String,
+    val codStatus: String = "",
 ): Serializable

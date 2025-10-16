@@ -538,15 +538,22 @@ class TransactionActivity : AppCompatActivity() {
          Cuota =  hioposDataResponseData?.Cuota.toString(),
          IdEntidad = hioposDataResponseData?.IdEntidad.toString() ,
          SaleId = hioposDataResponseData?.SaleId.toString(),
-         documentData = hioposDataResponseData?.documentData.toString()
+         documentData = hioposDataResponseData?.documentData.toString(),
+          codStatus = hioposDataResponseData?.codStatus.toString()
         )
         viewModelProcess.saveSuccessfulTransactionData(dataLocal)
         viewModelProcess.saveDocumenData(hioposDocumentData.toString())
         //viewModelProcess.saveDocumenData(hioposDocumentData.toString())
         resultIntent.putExtra("hioposDataResponse", hioposDataResponseData)
         println("Result: ${resultIntent.extras}")
-        setResult(RESULT_CANCELED, resultIntent)
-        finish()
+        if (hioposDataResponseData?.codStatus != "00"){
+            setResult(RESULT_CANCELED, resultIntent)
+            finish()
+        }else {
+            setResult(RESULT_OK, resultIntent)
+            finish()
+        }
+
     }
 
 
@@ -589,10 +596,10 @@ class TransactionActivity : AppCompatActivity() {
             APIUtils.serializeAPIAmount(taxAmount)
         )
 
-        if (transactionData != null && !transactionData.isEmpty()) resultIntent.putExtra(
+        /*if (transactionData != null && !transactionData.isEmpty()) resultIntent.putExtra(
             "TransactionData",
             transactionData
-        )
+        )*/
 
         if (merchantReceipt != null && !merchantReceipt.isEmpty()) resultIntent.putExtra(
             "MerchantReceipt",
@@ -646,15 +653,21 @@ class TransactionActivity : AppCompatActivity() {
 
 
         println("HioposDocumentDatos: $hioposDocumentDatos")
-
-        //resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
-        resultIntent.putExtra("DocumentData",hioposDocumentDatos.toXml())
+        //resultIntent.putExtra("DocumentData",hioposDocumentDatos.toXml())
+        resultIntent.putExtra("TransactionData", "")
+        resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
         println("RESULT INTENT > " + resultIntent.extras.toString())
 
         viewModelProcess.clearSavedData()
         viewModelProcess.clearSavedDocumentData()
-        setResult(RESULT_OK, resultIntent)
-        finish()
+        if (hioposDataResponseData?.codStatus.toString() != "00"){
+            setTransactionResultWithException("No se pudo realizar la transacción, código ${hioposDataResponseData?.codStatus.toString()}")
+        }else{
+            setResult(RESULT_OK, resultIntent)
+            finish()
+
+        }
+
 
 
     }
@@ -992,7 +1005,8 @@ class TransactionActivity : AppCompatActivity() {
             Cuota =  "1",
             IdEntidad = "1" ,
             SaleId = saleId,
-            documentData = hioposDataResponseData?.documentData.toString()
+            documentData = hioposDataResponseData?.documentData.toString(),
+            codStatus = "00"
         )
         viewModelProcess.saveSuccessfulTransactionData(dataLocal)
         viewModelProcess.saveDocumenData(datass)

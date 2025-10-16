@@ -80,24 +80,4 @@ object APIUtils {
 
         return properties
     }
-
-    fun documentModificado(): String {
-        return """<ModifyDocumentResult>
-    <PaymentMeans>
-        <PaymentMean>
-            <CustomPaymentMeanFields>
-                <CustomDocPaymentMeanField Key="LineNumber">1</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="TransactionId">a78f482e-0511-4113-9bc8-a2b4292da651</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="IdRef">0065</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="IdEntidad">1</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="NTarjeta">421355**3740</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="docTarjeta">TJ3324C521567</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="IdFormaPagoKey">3</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="IdTarjetaKey">MAST</CustomDocPaymentMeanField>
-                <CustomDocPaymentMeanField Key="Cuota">1</CustomDocPaymentMeanField>
-            </CustomPaymentMeanFields>
-        </PaymentMean>
-    </PaymentMeans>
-</ModifyDocumentResult>"""
-    }
 }

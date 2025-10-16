@@ -47,7 +47,7 @@ class ProcessingViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = HioposDataResponse("", "", "", "", "", "", "", "","") // Valor inicial vacío
+            initialValue = HioposDataResponse("", "", "", "", "", "", "", "","","") // Valor inicial vacío
         )
     val savedDocumentData: StateFlow<String> = settingsManager.hioposDataDocument
         .stateIn(
@@ -162,7 +162,8 @@ class ProcessingViewModel(
                 Cuota = numInstallments.toString(),
                 IdEntidad = "1",
                 SaleId = orderId.toString(),
-                documentData = ""
+                documentData = "",
+                codStatus = responseCode.toString()
             )
             _hiosDataResponse.postValue(hioposDataResponse)
             println("HioposDataResponse: $hioposDataResponse")

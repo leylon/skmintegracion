@@ -26,6 +26,7 @@ class HioposSettingsManager(private val context: Context) {
         val ID_ENTIDAD = stringPreferencesKey("id_entidad")
         val SALE_ID = stringPreferencesKey("sale_id")
         val DOCUMENT_DATA = stringPreferencesKey("document_data")
+        val COD_STATUS = stringPreferencesKey("cod_status")
     }
 
     // ... Aquí irán las funciones para guardar y leer
@@ -40,6 +41,7 @@ class HioposSettingsManager(private val context: Context) {
             settings[PreferencesKeys.ID_ENTIDAD] = response.IdEntidad
             settings[PreferencesKeys.SALE_ID] = response.SaleId
             settings[PreferencesKeys.DOCUMENT_DATA] = response.documentData
+            settings[PreferencesKeys.COD_STATUS] = response.codStatus
         }
     }
     suspend fun saveDocumentData(documentData: String) {
@@ -64,7 +66,8 @@ class HioposSettingsManager(private val context: Context) {
                 Cuota = preferences[PreferencesKeys.CUOTA] ?: "",
                 IdEntidad = preferences[PreferencesKeys.ID_ENTIDAD] ?: "",
                 SaleId = preferences[PreferencesKeys.SALE_ID] ?: "",
-                documentData = preferences[PreferencesKeys.DOCUMENT_DATA] ?: ""
+                documentData = preferences[PreferencesKeys.DOCUMENT_DATA] ?: "",
+                codStatus = preferences[PreferencesKeys.COD_STATUS] ?: "",
             )
         }
     val hioposDataDocument: Flow<String> =  context.dataStore.data
