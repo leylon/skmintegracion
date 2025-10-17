@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
     // --- 🧾 6. VOUCHERS ---
     private fun obtenerUltimoVoucher() {
         val extras = Bundle().apply {
-            putString("trxCode", "57") // Código para Última transacción [cite: 218]
+            putString("trxCode", "56") // Código para Última transacción [cite: 218]
             //putBoolean("installments",true)
             putBoolean("flagEmail",true)
             putBoolean("flagPhone",true)
@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
             putBoolean("voucherEnable", true) // Mostrar voucher/reporte en Izipay [cite: 108]
 
         }
+        //println("ley: MainActivity...obtenerUltimoVoucher extras: $extras" )
         enviarPeticionAIzipay(extras)
     }
 
@@ -78,7 +79,7 @@ class MainActivity : AppCompatActivity() {
             extras.putString("packageName", this.javaClass.getPackage()?.name)
             extras.putString("packageId", applicationContext.packageName)
             extras.putString("activityResponse", this.javaClass.simpleName)
-
+            println("ley: MainActivity...obtenerUltimoVoucher extras: $extras" )
             intent.putExtras(extras)
             //intentHiopos?.let { intent.putExtras(it) }
             startActivity(intent)
