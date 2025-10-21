@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,10 +14,10 @@ import com.skm.skmintegracion.hiopos.data.FinalizeTransactionUseCase
 import com.skm.skmintegracion.hiopos.data.HioposSettingsManager
 
 class MainActivity : AppCompatActivity() {
-    lateinit var btnBack: Button
-    lateinit var btnReporteTotal: Button
-    lateinit var btnReporteDetallado: Button
-    lateinit var btnReportLastVoucher: Button
+    lateinit var btnBack: LinearLayout
+    lateinit var btnReporteTotal: LinearLayout
+    lateinit var btnReporteDetallado: LinearLayout
+    lateinit var btnReportLastVoucher: LinearLayout
     private val IZIPAY_PACKAGE_NAME = "pe.izipay.pmpDev" // o "pe.izipay.izi" para producción [cite: 406, 407]
     private val IZIPAY_COMPONENT_NAME = "pe.izipay.Mpos00External" // Componente principal [cite: 408]
     override fun onCreate(savedInstanceState: Bundle?) {

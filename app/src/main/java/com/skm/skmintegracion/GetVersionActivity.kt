@@ -20,7 +20,7 @@ class GetVersionActivity : AppCompatActivity() {
      * of integrator to implement it and set the right result.
      */    
     protected fun onGetVersion() {
-        setVersionResult(10)
+        setVersionResult(11)
     }
 
 
