@@ -71,6 +71,7 @@ class TransactionActivity : AppCompatActivity() {
     private var customerPhone: String? = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("TransactionActivity onCreate called")
         setContentView(R.layout.activity_main)
         textView = findViewById(R.id.textView)
         button2 = findViewById(R.id.button2)
@@ -104,11 +105,11 @@ class TransactionActivity : AppCompatActivity() {
                 println("inalResultResponse: $transactionOutput")
                 hioposDocumentData = transactionOutput
                 if (transactionOutput.isNotEmpty()) { // Check if we have data to process
-
+                    //showProgressAndExit()
                 }
             }
         }
-        //showProgressAndExit()
+        //
 
     }
 
@@ -154,7 +155,7 @@ class TransactionActivity : AppCompatActivity() {
                         ReceiptPrinterColumns: $receiptPrinterColumns
                         """.trimIndent()
                 )
-                textView!!.text = """
+                /*textView!!.text = """
                 PROCESSING SALE TRANSACTION > 
                 TenderType: $tenderType
                 CurrencyISO: $currencyISO
@@ -165,6 +166,7 @@ class TransactionActivity : AppCompatActivity() {
                 TransactionData: $transactionData
                 ReceiptPrinterColumns: $receiptPrinterColumns
                 """.trimIndent()
+                */
                 realizarCompra(amount.toString(), tipAmount.toString())
                 //realizarCompraTest( amount.toString(), tipAmount.toString(),saleId,datass)
             }
@@ -249,7 +251,7 @@ class TransactionActivity : AppCompatActivity() {
                     setResult(RESULT_CANCELED, resultIntent)
                     finish()
                 }
-
+                showProgressAndExit()
                 //resultIntent.putExtra("ErrorMessage", "Method not supported")
                 //setResult(RESULT_CANCELED, resultIntent)
                 //finish()
@@ -377,7 +379,7 @@ class TransactionActivity : AppCompatActivity() {
     private fun showProgressAndExit() {
         progressOverlay?.visibility = View.VISIBLE
         lifecycleScope.launch {
-            delay(5000) // Espera 5 segundos
+            delay(3000) // Espera 5 segundos
             progressOverlay?.visibility = View.GONE
             onExit(null)
         }
@@ -1155,4 +1157,14 @@ class TransactionActivity : AppCompatActivity() {
     }
     */
 
+    override fun onResume() {
+        super.onResume()
+        println("ley: onResume called" )
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        println("ley: onRestart called" )
+        showProgressAndExit()
+    }
 }

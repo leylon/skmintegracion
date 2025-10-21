@@ -25,6 +25,7 @@
             android:layout_height="wrap_content"
             android:text="Presiona Finalizar"
             android:textSize="18sp"
+            android:visibility="gone"
             android:textStyle="bold" />
 
         <Button
@@ -36,6 +37,7 @@
             android:paddingStart="32dp"
             android:paddingEnd="32dp"
             android:text="FINALIZAR"
+            android:visibility="gone"
             android:textColor="@android:color/white" />
     </LinearLayout>
 
