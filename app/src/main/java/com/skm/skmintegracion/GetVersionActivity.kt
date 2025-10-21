@@ -1,11 +1,14 @@
 package com.skm.skmintegracion
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 
 
-class GetVersionActivity : Activity() {
+class GetVersionActivity : AppCompatActivity() {
+    private val context: Context = this@GetVersionActivity
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         println("ley: GetVersionActivity...onCreate")
@@ -17,7 +20,7 @@ class GetVersionActivity : Activity() {
      * of integrator to implement it and set the right result.
      */    
     protected fun onGetVersion() {
-        setVersionResult(7)
+        setVersionResult(10)
     }
 
 

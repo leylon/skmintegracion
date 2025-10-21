@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -27,6 +28,7 @@ import com.skm.skmintegracion.hiopos.data.PaymentMeans
 import com.skm.skmintegracion.hiopos.data.mapper.toDocument
 import com.skm.skmintegracion.hiopos.data.mapper.toXml
 import com.skm.skmintegracion.utils.APIUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -50,6 +52,7 @@ class TransactionActivity : AppCompatActivity() {
 
     private var textView: TextView? = null
     private var button2: Button? = null
+    private var progressOverlay: LinearLayout? = null
     /*private val settingsManager: HioposSettingsManager by lazy {
         HioposSettingsManager(context = this)
     }
@@ -71,6 +74,7 @@ class TransactionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         textView = findViewById(R.id.textView)
         button2 = findViewById(R.id.button2)
+        progressOverlay = findViewById(R.id.progress_overlay)
 
         button2?.setOnClickListener { onExit(it) }
 
@@ -99,10 +103,15 @@ class TransactionActivity : AppCompatActivity() {
             viewModelProcess.savedDocumentData.collect { transactionOutput ->
                 println("inalResultResponse: $transactionOutput")
                 hioposDocumentData = transactionOutput
+                if (transactionOutput.isNotEmpty()) { // Check if we have data to process
+
+                }
             }
         }
+        //showProgressAndExit()
 
     }
+
 
     private fun handleIntent(intent: Intent) {
         val transactionType = getIntent().getStringExtra("TransactionType")
@@ -230,6 +239,7 @@ class TransactionActivity : AppCompatActivity() {
                     viewModelProcess.saveAndProcessIzipayResponse(izipayExtras)
 
                     println("hiopos: $hioposDataResponseData")
+
                 } else {
                     // Manejar el caso de que no haya respuesta
                    // viewModelProcess.handleNoIzipayResponse()}
@@ -361,6 +371,15 @@ class TransactionActivity : AppCompatActivity() {
 
             Transaction.BATCH_CLOSE -> onBatchCloseReceived()
             else -> onUnknownTransactionReceived()
+        }
+    }
+
+    private fun showProgressAndExit() {
+        progressOverlay?.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            delay(5000) // Espera 5 segundos
+            progressOverlay?.visibility = View.GONE
+            onExit(null)
         }
     }
 
@@ -642,17 +661,17 @@ class TransactionActivity : AppCompatActivity() {
         // Crear el objeto raíz
         val documentToGenerate = ModifyDocumentResult(paymentMeans = paymentMeans)
         println("hioposDocumentData antes de convertir: ${hioposDocumentData.toString()}")
-        var hioposDocumentDatos = hioposDocumentData.toString().toDocument()
+        //var hioposDocumentDatos = hioposDocumentData.toString().toDocument()
         //hioposDocumentDatos.modifyDocumentResult = ModifyDocumentResult(paymentMeans = paymentMeans)
        // val paymentMeans = com.skm.skmintegracion.hiopos.data.model.document.payment_means.PaymentMean()
         //hioposDocumentDatos.paymentMeans?.add(paymentMean)
 
-         hioposDocumentDatos = viewModelProcess.updateDocumentInfo(hioposDocumentData.toString(),hioposDataResponseData!!)
+        // hioposDocumentDatos = viewModelProcess.updateDocumentInfo(hioposDocumentData.toString(),hioposDataResponseData!!)
         //val paymentMeanData = hioposDocumentDatos.paymentMeans?.firstOrNull() ?: PaymentMean()
         //hioposDocumentDatos.paymentMeans = listOf(viewModelProcess.updatePaymentMeanInfo(paymentMeanData,hioposDataResponseData!!))
 
 
-        println("HioposDocumentDatos: $hioposDocumentDatos")
+        //println("HioposDocumentDatos: $hioposDocumentDatos")
         //resultIntent.putExtra("DocumentData",hioposDocumentDatos.toXml())
         resultIntent.putExtra("TransactionData", "")
         resultIntent.putExtra("ModifyDocumentResult", documentToGenerate.toXml())
@@ -1022,6 +1041,7 @@ class TransactionActivity : AppCompatActivity() {
             putString("amount", amount) // Monto original [cite: 186]
             putString("reference", referenceId) // Referencia de la venta original a anular [cite: 186]
             putString("orderId", saleId)
+            putBoolean("currency", true)
         }
         enviarPeticionAIzipay(extras)
     }

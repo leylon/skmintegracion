@@ -1,38 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!--
+  Usamos un FrameLayout como contenedor principal.
+  Esto nos permite superponer vistas una encima de la otra,
+  ideal para mostrar un indicador de progreso sobre el contenido principal.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_centerInParent="false"
-    android:layout_centerHorizontal="false"
-    android:layout_centerVertical="false"
+    tools:context=".MainActivity">
 
-    android:id="@+id/main"
-    android:orientation="vertical">
-    <include layout="@layout/toolbar" />
+    <!-- 1. Contenido Principal de tu Pantalla -->
     <LinearLayout
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-    android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Preciona Finalizar"
-
+            android:text="Presiona Finalizar"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/button2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
             android:backgroundTint="#FF2D46"
-            android:text="FINALIZAR" />
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:text="FINALIZAR"
+            android:textColor="@android:color/white" />
     </LinearLayout>
 
-</LinearLayout>
+    <!-- 2. Vista de Carga (Overlay) -->
+    <!--
+      Este LinearLayout se mostrará sobre el contenido principal.
+      - `android:background="#99000000"`: Fondo negro con ~60% de opacidad para oscurecer el contenido de atrás.
+      - `android:visibility="gone"`: Inicialmente está oculto. Lo haremos visible con código Kotlin.
+      - `tools:visibility="visible"`: Esto hace que sea visible en la vista previa del editor, facilitando el diseño.
+    -->
+    <LinearLayout
+        android:id="@+id/progress_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <!-- Barra de progreso circular indeterminada -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateTint="@android:color/white" />
+
+        <!-- Texto que se muestra durante la carga -->
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Estamos procesando su transacción.\nPor favor, espera un momento..."
+            android:textAlignment="center"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</FrameLayout>
