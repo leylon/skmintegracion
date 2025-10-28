@@ -22,7 +22,7 @@ class GetCustomParamsActivity : Activity() {
             }
 
             resultIntent.putExtra("Logo", baos.toByteArray())
-            resultIntent.putExtra("Name", "Webinar Payment")
+            resultIntent.putExtra("Name", "izipay")
 
             setResult(RESULT_OK, resultIntent)
             finish()

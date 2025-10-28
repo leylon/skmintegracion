@@ -11,7 +11,7 @@ android {
         applicationId = "com.skm.skmintegracion"
         minSdk = 24
         targetSdk = 35
-        versionCode = 11
+        versionCode = 1
         versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
